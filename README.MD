@@ -18,10 +18,15 @@ npm run test:coverage
 ## API Endpoints
 
 POST   /topics
+
 PUT    /topics/:id
+
 GET    /topics/:id
+
 GET    /topics/:id/version/:version
+
 GET    /topics/:id/tree
+
 GET    /topics/path/:from/:to
 
 ## Authentication & Authorization
