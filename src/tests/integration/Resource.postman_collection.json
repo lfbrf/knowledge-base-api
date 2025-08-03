@@ -1,0 +1,295 @@
+{
+  "info": {
+    "name": "Knowledge Base API - Resource CRUD",
+    "_postman_id": "resource-crud-collection-id",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+  "name": "Create Topic for Resource",
+  "request": {
+    "method": "POST",
+    "header": [
+      { "key": "Content-Type", "value": "application/json" }
+    ],
+    "body": {
+      "mode": "raw",
+      "raw": "{\n  \"name\": \"Resource Topic\",\n  \"content\": \"Topic for resource test\"\n}"
+    },
+    "url": {
+      "raw": "http://localhost:3000/topics",
+      "protocol": "http",
+      "host": ["localhost"],
+      "port": "3000",
+      "path": ["topics"]
+    }
+  },
+  "event": [{
+    "listen": "test",
+    "script": {
+      "exec": [
+        "pm.test(\"Topic created for resource\", function () {",
+        "    pm.response.to.have.status(201);",
+        "    pm.collectionVariables.set(\"rootId\", pm.response.json().id);",
+        "});"
+      ],
+      "type": "text/javascript"
+    }
+  }]
+},
+{
+      "name": "Create Resource",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"topicId\": \"{{rootId}}\",\n  \"url\": \"https://example.com/resource.pdf\",\n  \"description\": \"A PDF resource\",\n  \"type\": \"pdf\"\n}"
+        },
+        "url": {
+          "raw": "http://localhost:3000/resources",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "3000",
+          "path": ["resources"]
+        }
+      },
+      "event": [{
+        "listen": "test",
+        "script": {
+          "exec": [
+            "pm.test(\"Resource created\", function () {",
+            "    pm.response.to.have.status(201);",
+            "    pm.collectionVariables.set(\"resourceId\", pm.response.json().id);",
+            "});"
+          ],
+          "type": "text/javascript"
+        }
+      }]
+    },
+    {
+      "name": "Create Resource - Missing Fields",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{}"
+        },
+        "url": {
+          "raw": "http://localhost:3000/resources",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "3000",
+          "path": ["resources"]
+        }
+      },
+      "event": [{
+        "listen": "test",
+        "script": {
+          "exec": [
+            "pm.test(\"Should fail with 400\", function () {",
+            "    pm.response.to.have.status(400);",
+            "});"
+          ],
+          "type": "text/javascript"
+        }
+      }]
+    },
+    {
+      "name": "Create Resource - Invalid TopicId",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"topicId\": \"not-a-real-id\",\n  \"url\": \"https://example.com/invalid.pdf\",\n  \"description\": \"Invalid topic\",\n  \"type\": \"pdf\"\n}"
+        },
+        "url": {
+          "raw": "http://localhost:3000/resources",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "3000",
+          "path": ["resources"]
+        }
+      },
+      "event": [{
+        "listen": "test",
+        "script": {
+          "exec": [
+            "pm.test(\"Should fail with 400 or 404\", function () {",
+            "    pm.expect([400,404]).to.include(pm.response.code);",
+            "});"
+          ],
+          "type": "text/javascript"
+        }
+      }]
+    },
+    {
+      "name": "Get Resource",
+      "request": {
+        "method": "GET",
+        "url": {
+          "raw": "http://localhost:3000/resources/{{resourceId}}",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "3000",
+          "path": ["resources", "{{resourceId}}"]
+        }
+      },
+      "event": [{
+        "listen": "test",
+        "script": {
+          "exec": [
+            "pm.test(\"Resource fetched\", function () {",
+            "    pm.response.to.have.status(200);",
+            "    pm.expect(pm.response.json().id).to.eql(pm.collectionVariables.get(\"resourceId\"));",
+            "});"
+          ],
+          "type": "text/javascript"
+        }
+      }]
+    },
+    {
+      "name": "Get Resource - Not Found",
+      "request": {
+        "method": "GET",
+        "url": {
+          "raw": "http://localhost:3000/resources/does-not-exist",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "3000",
+          "path": ["resources", "does-not-exist"]
+        }
+      },
+      "event": [{
+        "listen": "test",
+        "script": {
+          "exec": [
+            "pm.test(\"Should return 404\", function () {",
+            "    pm.response.to.have.status(404);",
+            "});"
+          ],
+          "type": "text/javascript"
+        }
+      }]
+    },
+    {
+      "name": "Update Resource",
+      "request": {
+        "method": "PUT",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"description\": \"Updated description\"\n}"
+        },
+        "url": {
+          "raw": "http://localhost:3000/resources/{{resourceId}}",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "3000",
+          "path": ["resources", "{{resourceId}}"]
+        }
+      },
+      "event": [{
+        "listen": "test",
+        "script": {
+          "exec": [
+            "pm.test(\"Resource updated\", function () {",
+            "    pm.response.to.have.status(200);",
+            "    pm.expect(pm.response.json().description).to.eql(\"Updated description\");",
+            "});"
+          ],
+          "type": "text/javascript"
+        }
+      }]
+    },
+    {
+      "name": "Update Resource - Not Found",
+      "request": {
+        "method": "PUT",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"description\": \"Updated description\"\n}"
+        },
+        "url": {
+          "raw": "http://localhost:3000/resources/does-not-exist",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "3000",
+          "path": ["resources", "does-not-exist"]
+        }
+      },
+      "event": [{
+        "listen": "test",
+        "script": {
+          "exec": [
+            "pm.test(\"Should return 404\", function () {",
+            "    pm.response.to.have.status(404);",
+            "});"
+          ],
+          "type": "text/javascript"
+        }
+      }]
+    },
+    {
+      "name": "Delete Resource",
+      "request": {
+        "method": "DELETE",
+        "url": {
+          "raw": "http://localhost:3000/resources/{{resourceId}}",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "3000",
+          "path": ["resources", "{{resourceId}}"]
+        }
+      },
+      "event": [{
+        "listen": "test",
+        "script": {
+          "exec": [
+            "pm.test(\"Resource deleted\", function () {",
+            "    pm.response.to.have.status(204);",
+            "});"
+          ],
+          "type": "text/javascript"
+        }
+      }]
+    },
+    {
+      "name": "Delete Resource - Not Found",
+      "request": {
+        "method": "DELETE",
+        "url": {
+          "raw": "http://localhost:3000/resources/does-not-exist2",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "3000",
+          "path": ["resources", "does-not-exist2"]
+        }
+      },
+      "event": [{
+        "listen": "test",
+        "script": {
+          "exec": [
+            "pm.test(\"Should return 404\", function () {",
+            "    pm.response.to.have.status(404);",
+            "});"
+          ],
+          "type": "text/javascript"
+        }
+      }]
+    }
+  ]
+}

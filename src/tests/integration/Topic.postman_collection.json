@@ -1,0 +1,717 @@
+{
+	"info": {
+		"_postman_id": "e4543491-d716-4217-b58e-a45616f27dc4",
+		"name": "Knowledge Base API - Topic Tests",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "3247247"
+	},
+	"item": [
+		{
+			"name": "Create Root Topic",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Created successfully\", function () {",
+							"    pm.response.to.have.status(201);",
+							"    pm.collectionVariables.set(\"rootId\", pm.response.json().id);",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"name\": \"Root Topic\",\n  \"content\": \"Root Content\"\n}"
+				},
+				"url": {
+					"raw": "http://localhost:3000/topics",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"topics"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Create Subtopic",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Subtopic created\", function () {",
+							"    pm.response.to.have.status(201);",
+							"    pm.collectionVariables.set(\"childId\", pm.response.json().id);",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"name\": \"Child Topic\",\n  \"content\": \"Child Content\",\n  \"parentTopicId\": \"{{rootId}}\"\n}"
+				},
+				"url": {
+					"raw": "http://localhost:3000/topics",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"topics"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Update Topic (Versioning)",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Topic updated and versioned\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "PUT",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					},
+					{
+						"key": "x-user-role",
+						"value": "Admin"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"content\": \"Updated content for Root Topic\"\n}"
+				},
+				"url": {
+					"raw": "http://localhost:3000/topics/{{rootId}}",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"topics",
+						"{{rootId}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get Specific Version",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Got version 1\", function () {",
+							"    pm.response.to.have.status(200);",
+							"    pm.expect(pm.response.json().version).to.eql(1);",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:3000/topics/{{rootId}}/version/1",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"topics",
+						"{{rootId}}",
+						"version",
+						"1"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get Tree",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Got topic tree\", function () {",
+							"    pm.response.to.have.status(200);",
+							"    const body = pm.response.json();",
+							"    pm.expect(body.children.length).to.be.above(0);",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:3000/topics/{{rootId}}/tree",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"topics",
+						"{{rootId}}",
+						"tree"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Shortest Path",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Got path between topics\", function () {",
+							"    pm.response.to.have.status(200);",
+							"    const path = pm.response.json();",
+							"    pm.expect(path).to.include(pm.collectionVariables.get(\"rootId\"));",
+							"    pm.expect(path).to.include(pm.collectionVariables.get(\"childId\"));",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:3000/topics/path/{{rootId}}/{{childId}}",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"topics",
+						"path",
+						"{{rootId}}",
+						"{{childId}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Delete Topic - Success",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Should create topic for deletion\", function () {",
+							"    pm.response.to.have.status(201);",
+							"    pm.environment.set(\"delete_topic_id\", pm.response.json().id);",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{ \"name\": \"ToDelete\", \"content\": \"test\" }"
+				},
+				"url": {
+					"raw": "http://localhost:3000/topics",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"topics"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Delete Topic - Success (Delete)",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Should delete topic\", function () {",
+							"    pm.response.to.have.status(204);",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "DELETE",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					},
+					{
+						"key": "x-user-role",
+						"value": "Admin"
+					}
+				],
+				"url": {
+					"raw": "http://localhost:3000/topics/{{delete_topic_id}}",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"topics",
+						"{{delete_topic_id}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Create Topic - Missing Fields",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Should fail due to missing fields\", function () {",
+							"    pm.response.to.have.status(400);",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{}"
+				},
+				"url": {
+					"raw": "http://localhost:3000/topics",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"topics"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Update Topic - Invalid ID",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Should fail with error\", function () {",
+							"    pm.response.to.have.status(500);",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "PUT",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					},
+					{
+						"key": "x-user-role",
+						"value": "Admin"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{ \"content\": \"Updated\" }"
+				},
+				"url": {
+					"raw": "http://localhost:3000/topics/invalid-id",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"topics",
+						"invalid-id"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get Topic - Invalid ID",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Should return null\", function () {",
+							"    pm.response.to.have.status(404);",
+							"    pm.expect(pm.response.json()).to.eql({",
+							"    \"error\": \"Topic not found\"",
+							"});",
+							"});"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:3000/topics/does-not-exist",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"topics",
+						"does-not-exist"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get Version - Invalid Version",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Should return null for invalid version\", function () {",
+							"    pm.response.to.have.status(404);",
+							"    pm.expect(pm.response.json()).to.eql({",
+							"    \"error\": \"Version not found\"",
+							"});",
+							"});"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:3000/topics/does-not-exist/version/99",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"topics",
+						"does-not-exist",
+						"version",
+						"99"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get Tree - Invalid ID",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Should return null for invalid tree\", function () {",
+							"    pm.response.to.have.status(404);",
+							"    pm.expect(pm.response.json()).to.eql({",
+							"    \"error\": \"Topic tree not found\"",
+							"});",
+							"});"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:3000/topics/not-found-id/tree",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"topics",
+						"not-found-id",
+						"tree"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Shortest Path - Disconnected",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Should return empty path\", function () {",
+							"    pm.response.to.have.status(200);",
+							"    const json = pm.response.json();",
+							"    pm.expect(json).to.be.an('array').that.is.empty;",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:3000/topics/path/a/b",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"topics",
+						"path",
+						"a",
+						"b"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Delete Topic - Invalid ID",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Should fail to delete non-existent topic\", function () {",
+							"    pm.response.to.have.status(404);",
+							"    pm.expect(pm.response.json().error).to.include('not found');",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "DELETE",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					},
+					{
+						"key": "x-user-role",
+						"value": "Admin"
+					}
+				],
+				"url": {
+					"raw": "http://localhost:3000/topics/invalid-id",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"topics",
+						"invalid-id"
+					]
+				}
+			},
+			"response": []
+		},
+    {
+      "name": "Delete Topic - Unauthorized",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Should fail to delete without admin role\", function () {",
+              "    pm.response.to.have.status(403);",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "DELETE",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "http://localhost:3000/topics/{{rootId}}",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "3000",
+          "path": [
+            "topics",
+            "{{rootId}}"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Delete Topic as Editor (Forbidden)",
+      "request": {
+        "method": "DELETE",
+        "header": [
+          { "key": "x-user-role", "value": "Editor" }
+        ],
+        "url": {
+          "raw": "http://localhost:3000/topics/{{childId}}",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "3000",
+          "path": ["topics", "{{childId}}"]
+        }
+      },
+      "event": [{
+        "listen": "test",
+        "script": {
+          "exec": [
+            "pm.test(\"Forbidden for Editor\", function () {",
+            "    pm.response.to.have.status(403);",
+            "});"
+          ],
+          "type": "text/javascript"
+        }
+      }]
+    },
+    {
+      "name": "Delete Topic as Viewer (Forbidden)",
+      "request": {
+        "method": "DELETE",
+        "header": [
+          { "key": "x-user-role", "value": "Viewer" }
+        ],
+        "url": {
+          "raw": "http://localhost:3000/topics/{{childId}}",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "3000",
+          "path": ["topics", "{{childId}}"]
+        }
+      },
+      "event": [{
+        "listen": "test",
+        "script": {
+          "exec": [
+            "pm.test(\"Forbidden for Viewer\", function () {",
+            "    pm.response.to.have.status(403);",
+            "});"
+          ],
+          "type": "text/javascript"
+        }
+      }]
+    }
+	],
+	"variable": [
+		{
+			"key": "rootId",
+			"value": ""
+		},
+		{
+			"key": "childId",
+			"value": ""
+		}
+	]
+}
